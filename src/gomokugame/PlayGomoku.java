@@ -15,9 +15,10 @@ import gui.Home;
  * @author MSI
  */
 public class PlayGomoku implements Runnable {
+    /*----- This class is instanciated when the game starts */
     public static Gomoku gomoku = new Gomoku();
     @Override
     public void run() {
-        //Home.board.addMouseListener(gomoku.new Click());
+        
     }
 }

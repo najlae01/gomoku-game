@@ -2,13 +2,12 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package gui;
+package tools;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import tools.Stone;
 
 /**
  *
@@ -16,12 +15,12 @@ import tools.Stone;
  */
 public class Cell extends javax.swing.JPanel{
     
-    public static int TAILLE_CELL = 30;         //------ La taille de cellule est 50
-    private int x;                         //------ L'id d'une cellule
+    public static int TAILLE_CELL = 30;
+    private int x; 
     private int y;
-    private Stone pion;                          //------ declaration d'un pion
+    private Stone stone;
     
-    //-------- Constructeur -------------
+    //------------ Cosnstructor ----------
     public Cell(int x, int y) {
         initComponents();
         this.x = x;
@@ -30,7 +29,7 @@ public class Cell extends javax.swing.JPanel{
     }
     
     
-    //-------- Getter & Setter ----------
+    //-------- Getters & Setters ----------
     public void setX(int x) {
         this.x = x;
     }
@@ -39,12 +38,12 @@ public class Cell extends javax.swing.JPanel{
         this.y = y;
     }
     
-    public Stone getPion() {
-        return this.pion;
+    public Stone getStone() {
+        return this.stone;
     }
     
-    public void setPion(Stone pion) {
-        this.pion = pion;
+    public void setStone(Stone stone) {
+        this.stone = stone;
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -71,29 +70,29 @@ public class Cell extends javax.swing.JPanel{
         );
     }// </editor-fold>                        
 
-    //------- Dessiner un pion ------------
-    public void drawPion(Color color) {
-        pion = new Stone(color);
+    //------- Draw a stone in the board with a given color ------------
+    public void drawStone(Color color) {
+        stone = new Stone(color);
         this.repaint();
     }
     
-  
-    public void eraseCellule() {
-        pion = null;
+    //------- Remove a stone from the board ------------
+    public void removeStone() {
+        stone = null;
         this.repaint();
     }
     
-    //-------- paint ----------
+    //-------- paint the cell ----------
     @Override
     public void paint(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
         super.paint(g2d);
-        if(pion != null)
-            pion.dessinerPion((Graphics2D) g);
+        if(stone != null)
+            stone.drawStone((Graphics2D) g);
         else
         {
             Stone epion = new Stone(new Color(255, 102, 153));
-            epion.dessinerPion((Graphics2D) g);
+            epion.drawStone((Graphics2D) g);
         }
     }             
 }

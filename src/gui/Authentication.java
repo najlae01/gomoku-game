@@ -22,25 +22,22 @@ import tools.*;
  */
 public class Authentication extends javax.swing.JFrame {
     
-    /***************************************************************************
-     * Les élèments de connection à la base de données *************************
-     **************************************************************************/
     Connection connection = null;       
     ResultSet rs = null;                
     ResultSet rs2 = null;
     PreparedStatement ps = null;
     EncryptPassword encryptPwd;
     
-    //------------ Cosnstructeur ----------
+    //------------ Cosnstructor ----------
     public Authentication() throws SQLException, ClassNotFoundException {
         initComponents();
         this.errorLbl.setVisible(false);
         
-        //--------- Se connecter à la BDD 
+        //--------- Connect to DB
         connection = ConnectionManager.getConnection();
     
         
-        //----- Centrer la fenetre 
+        //----- Adjust Window
         Dimension screenSize,frameSize;
         int x,y;
         screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -49,30 +46,26 @@ public class Authentication extends javax.swing.JFrame {
         y=(screenSize.height-frameSize.height)/2;
         setLocation(x, y);
         
-        //------ mettre la fenetre non Resizable
         this.setResizable(false); 
-        
-        //------ Icon de frame
+
         Image icon = Toolkit.getDefaultToolkit().getImage(Authentication.class.getResource("/images/g1.png"));  
         this.setIconImage(icon);   
         
-        //------ Titre de frame
         this.setTitle("Log In");
     }
 
     
-    //------------ Cosnstructeur ----------
+    //------------ Cosnstructor with arguments ----------
     public Authentication(String email, String password) throws SQLException, ClassNotFoundException {
         initComponents();
         this.emailTxt.setText(email);
         this.passwordTxt.setText(password);
         this.errorLbl.setVisible(false);
         
-        //--------- Se connecter à la BDD 
+        //--------- Connect to DB
         connection = ConnectionManager.getConnection();
-    
         
-        //----- Centrer la fenetre 
+        //----- Adjust Window
         Dimension screenSize,frameSize;
         int x,y;
         screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -81,14 +74,11 @@ public class Authentication extends javax.swing.JFrame {
         y=(screenSize.height-frameSize.height)/2;
         setLocation(x, y);
         
-        //------ mettre la fenetre non Resizable
         this.setResizable(false);
         
-        //------ Icon de frame
-        Image icon = Toolkit.getDefaultToolkit().getImage(Authentication.class.getResource("/images/o3.png"));  
+        Image icon = Toolkit.getDefaultToolkit().getImage(Authentication.class.getResource("/images/g1.png"));  
         this.setIconImage(icon);   
         
-        //------ Titre de frame
         this.setTitle("Authentification");
     }
     /**
@@ -204,11 +194,11 @@ public class Authentication extends javax.swing.JFrame {
     }// </editor-fold>                        
 
     
-    //------------ Button d'inscription ----------
+    //------------ Registration Button ----------
     private void inscrireBtnActionPerformed(java.awt.event.ActionEvent evt) {                                            
  
         try {
-            Inscription in = new Inscription();
+            Registration in = new Registration();
             in.setVisible(true);
         this.dispose();
         } catch (SQLException ex) {
@@ -220,7 +210,7 @@ public class Authentication extends javax.swing.JFrame {
     }                                           
 
     
-    //------------ Button d'Authentification ----------
+    //------------ Authentication Button ----------
     private void connexionBtnActionPerformed(java.awt.event.ActionEvent evt) {                                             
         
         int idUser = 0;
@@ -235,8 +225,8 @@ public class Authentication extends javax.swing.JFrame {
             }
             
             /*******************************************************************
-             * On selectionne a partir de la BDD l'id du joueur si tous les 
-             * informations entrées par le joueur sont correcte
+             * The player id is retrieved from the database 
+             * if all the information entered by the player are correct
              ******************************************************************/
             ps = connection.prepareStatement("Select id_user from user where email=? and password=?");
             ps.setString(1, email);
@@ -246,14 +236,16 @@ public class Authentication extends javax.swing.JFrame {
             
             while(this.rs.next()) {
                 
-                //------ retourner l'id de l'tilisateur
+                //------ retrieve user id 
                 idUser = this.rs.getInt(1);
                 
-                //------ fermer la page d'authentification
                 dispose(); 
+                
                 errorLbl.setVisible(false);
-
+                
+                //store the user Id in a Home attribute
                 Home.idUser = idUser;
+                
                 Home home = new Home();
                 home.setVisible(true);
 
@@ -268,7 +260,7 @@ public class Authentication extends javax.swing.JFrame {
         }
     }                                            
 
-    //------------ Button de quitter ----------
+    //------------ Exit Button ----------
     private void exitActionPerformed(java.awt.event.ActionEvent evt) {                                     
         
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

@@ -4,7 +4,6 @@
  */
 package tools;
 
-import gui.Cell;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
@@ -14,13 +13,14 @@ import java.util.ArrayList;
  * @author MSI
  */
 public class Stone {
-    private int x;               // ----- L'abscisse
-    private int y;              // ----- L'ordonée
-    private Color color;       // ----- La variable qui prend la color de pion
-                              // ----- Il sera soit la couleur blanc ou noir
-    public ArrayList<Stone> stones = new ArrayList<Stone>(); // ----- liste des pions
     
-    // ---------- Constructeur ------------
+    private int x;               
+    private int y;
+    private Color color;
+    
+    public ArrayList<Stone> stones = new ArrayList<Stone>();
+
+    //------------ Cosnstructor ----------
     public Stone(Color color) 
     {
         super();
@@ -42,7 +42,7 @@ public class Stone {
         return color;
     }
 
-    public ArrayList<Stone> getPions() {
+    public ArrayList<Stone> getStones() {
         return stones;
     }
 
@@ -58,25 +58,25 @@ public class Stone {
         this.color = color;
     }
 
-    public void setPions(ArrayList<Stone> pions) {
-        this.stones = pions;
+    public void setPions(ArrayList<Stone> stones) {
+        this.stones = stones;
     }
     
     //-------- ToString --------------
     @Override
     public String toString() {
-        return "Pion{" + "x=" + x + ", y=" + y + ", color=" + color + '}';
+        return "Stone{" + "x=" + x + ", y=" + y + ", color=" + color + '}';
     }
 
     
-    //--------- Dessiner pion ---------
-    public void dessinerPion(Graphics2D g)
+    //--------- Draw a stone ---------
+    public void drawStone(Graphics2D g)
     {
         g.setColor(color);
         g.fillOval(x+2, y+2, Cell.TAILLE_CELL-5, Cell.TAILLE_CELL-5);
     }
 
-    //------- Supprimer pion ----------
+    //------- Remove a stone ----------
     public void remove(Stone p)
     {
         this.remove(p);

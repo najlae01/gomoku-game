@@ -4,17 +4,7 @@
  */
 package gomokugame;
 
-import gui.Cell;
 import gui.Home;
-import static gui.Home.leftHintText;
-import java.awt.Color;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Graphics;
-import java.awt.RenderingHints;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Vector;
 import javax.swing.JOptionPane;
@@ -31,18 +21,26 @@ public class Gomoku extends GameSearch {
         HUMAN_VS_HUMAN, HUMAN_VS_COMPUTER
     };
 
-    public static PlayModeType playMode;   // Stores the chosen play mode
+    // Stores the chosen play mode
+    public static PlayModeType playMode;
 
+    // represents the game board
     public BoardPanel board = new BoardPanel();
-    public static boolean isClicked = false; //---- un boolean qui retourne true 
-    //si le joueur clique sur le board pour dessiner un pion
+    
+    // returns true if the user clicked on the board to draw the stone
+    public static boolean isClicked = false; 
 
+    // represents the current player turn
     public static boolean playerTurn = HUMAN;
-    public static boolean isFirstPlayerTurn = true;
+    
+    // true : the user can click in the board = can play --- false : he can not
     public static boolean canClick = true;
-    public static int stoneX;       //----- la position de pion à dessiner
+    
+    // The stone to draw position
+    public static int stoneX;
     public static int stoneY;
 
+    // true : it's the machine turn, used to prints a flag indicating it on the board
     public static boolean isAIThinking = false;
 
     // Stones left for the player 1
@@ -57,18 +55,20 @@ public class Gomoku extends GameSearch {
     // Stones left for the player 2
     public static int leftHintsForPlayer2;
 
+    // Game position
     public static GomokuPosition position = new GomokuPosition();
-    public static int depth;           //----- la profendeur
-    public static boolean gameOver = false;         //----- Si le joueur depasse le timer, on va retourner True
-    public static GomokuPosition lastPosition = new GomokuPosition();
+    
+    // Difficulty level chosen 
+    public static int depth;   
+    
+    // indicates if the game is over or not
+    public static boolean gameOver = false; 
+    
+    
+    // Win score should be greater than all possible board scores
+    private static final int winScore = 100000000;
 
-    /**
-     * *************************************************************************
-     * On declare un tableau sur lequel on met des valeurs tactiques qui
-     * representent l'interet de chaque case
-     * ************************************************************************
-     */
-    //--------- Fonction : drawnPsoition ------------
+
     @Override
     public boolean drawnPosition(Position p) {
         if (GameSearch.DEBUG) {
@@ -91,25 +91,54 @@ public class Gomoku extends GameSearch {
     }
 
     private boolean winCheck(boolean player, GomokuPosition pos) {
-        int b = 0;
+        int b;
         if (player) {
             b = GomokuPosition.HUMAN;
         } else {
             b = GomokuPosition.PROGRAM;
         }
-        for (int i = 0; i < 15; i++) {
+
+        if (checkFiveInVertical(pos, b)) {
+            return true;
+        }
+
+        if (checkFiveInHorizantal(pos, b)) {
+            return true;
+        }
+
+        if (checkFiveInDiagonalInWholeBoard(pos)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /* This method returns true if there is any 5 consecutive stones of
+    * the enemy on the board in a any diagonal line
+    */
+    public boolean checkFiveInDiagonalInWholeBoard(GomokuPosition pos) {
+        for (int i = 0; i < 19; i++) {
             for (int j = 0; j < 19; j++) {
-                if (pos.board[i][j] == pos.board[i + 1][j] && pos.board[i + 1][j] == pos.board[i + 2][j]
-                        && pos.board[i + 2][j] == pos.board[i + 3][j] && pos.board[i + 3][j] == pos.board[i + 4][j]
-                        && pos.board[i + 4][j] == b) {
-                    return true;
+                if (pos.board[i][j] != GomokuPosition.BLANK) {
+                    if (checkTimesInDiagonal(pos, i, j, 5)) {
+                        return true;
+                    }
                 }
+
             }
         }
-        for (int j = 0; j < 19; j++) {
-            if (pos.board[14][j] == pos.board[15][j] && pos.board[15][j] == pos.board[16][j]
-                    && pos.board[16][j] == pos.board[17][j] && pos.board[17][j] == pos.board[18][j]
-                    && pos.board[14][j] == b) {
+        return false;
+    }
+
+    /* This method returns true if there is any 5 consecutive stones of
+    * the enemy on the board in any vertical line
+    */
+    public boolean checkFiveInVertical(GomokuPosition pos, int target) {
+        for (int i = 0; i < 19; i++) {
+            if (pos.board[i][14] == pos.board[i][15] && pos.board[i][15] == pos.board[i][16]
+                    && pos.board[i][16] == pos.board[i][17] && pos.board[i][17] == pos.board[i][18]
+                    && pos.board[i][14] == target) {
+                System.out.println("VERTICAL 4 LAST!");
                 return true;
             }
         }
@@ -118,123 +147,106 @@ public class Gomoku extends GameSearch {
             for (int j = 0; j < 15; j++) {
                 if (pos.board[i][j] == pos.board[i][j + 1] && pos.board[i][j + 1] == pos.board[i][j + 2]
                         && pos.board[i][j + 2] == pos.board[i][j + 3] && pos.board[i][j + 3] == pos.board[i][j + 4]
-                        && pos.board[i][j + 4] == b) {
+                        && pos.board[i][j + 4] == target) {
+                    System.out.println("VERTICAL !");
                     return true;
                 }
             }
         }
-        for (int i = 0; i < 19; i++) {
-            if (pos.board[i][14] == pos.board[i][15] && pos.board[i][15] == pos.board[i][16]
-                    && pos.board[i][16] == pos.board[i][17] && pos.board[i][17] == pos.board[i][18]
-                    && pos.board[i][14] == b) {
-                return true;
+        return false;
+    }
+
+    /* This method returns true if there is any 5 consecutive stones of
+    * the enemy on the board in any horizontal line
+    */
+    public boolean checkFiveInHorizantal(GomokuPosition pos, int target) {
+        for (int i = 0; i < 15; i++) {
+            for (int j = 0; j < 19; j++) {
+                if (pos.board[i][j] == pos.board[i + 1][j] && pos.board[i + 1][j] == pos.board[i + 2][j]
+                        && pos.board[i + 2][j] == pos.board[i + 3][j] && pos.board[i + 3][j] == pos.board[i + 4][j]
+                        && pos.board[i + 4][j] == target) {
+                    System.out.println("HORIZONTAL !");
+                    return true;
+                }
             }
         }
-        for (int g = 0; g < 19; g++) {
-            ArrayList<Integer> list = new ArrayList<Integer>();
-            for (int i = 0, j = g; j < 19; i++, j++) {
-                if (pos.board[i][j] == b) {
-                    list.add(pos.board[i][j]);
-                    //System.out.println("Diag 1 ("+i+", "+j+"): "+pos.board[i][j]);
-                }
-            }
-            int count = 0;
-            for (int i = 0; i < list.size() - 2; i++) {
-                if (list.get(i) == list.get(i + 1)) {
-                    count++;
-                }
-            }
-            if (list.size() > 2 && list.get(list.size() - 2) == list.get(list.size() - 1)) {
-                count++;
-            }
-            //System.out.println("Diag 1 count : "+count);
-            if (count == 4) {
-                return true;
-            }
-        }
-        for (int g = 0; g < 19; g++) {
-            ArrayList<Integer> list = new ArrayList<Integer>();
-            for (int i = 0, j = g + 1; j < 19; i++, j++) {
-                if (pos.board[i][j] == b) {
-                    list.add(pos.board[i][j]);
-                    //System.out.println("Diag 2 ("+i+", "+j+"): "+pos.board[i][j]);
-                }
-            }
-            int count = 0;
-            for (int i = 0; i < list.size() - 2; i++) {
-                if (list.get(i) == list.get(i + 1)) {
-                    count++;
-                }
-            }
-            if (list.size() > 2 && list.get(list.size() - 2) == list.get(list.size() - 1)) {
-                count++;
-            }
-            //System.out.println("Diag 1 count : "+count);
-            if (count == 4) {
-                return true;
-            }
-        }
-        for (int col = 0; col < 19; col++) {
-            ArrayList<Integer> list = new ArrayList<Integer>();
-            int startcol = col, startrow = 0;
-
-            while (startcol >= 0 && startrow < 19) {
-                if (pos.board[startrow][startcol] == b) {
-                    list.add(pos.board[startrow][startcol]);
-                    //System.out.println("Diag 3 ("+startrow+", "+ startcol+"): "+pos.board[startrow][startcol]);
-                }
-
-                startcol--;
-
-                startrow++;
-            }
-            int count = 0;
-            for (int i = 0; i < list.size() - 2; i++) {
-                if (list.get(i) == list.get(i + 1)) {
-                    count++;
-                }
-            }
-            if (list.size() > 2 && list.get(list.size() - 2) == list.get(list.size() - 1)) {
-                count++;
-            }
-            //System.out.println("Diag 1 count : "+count);
-            if (count == 4) {
-                return true;
-            }
-        }
-        for (int row = 1; row < 19; row++) {
-            ArrayList<Integer> list = new ArrayList<Integer>();
-            int startrow = row, startcol = 19 - 1;
-
-            while (startrow < 19 && startcol >= 0) {
-                if (pos.board[startrow][startcol] == b) {
-                    list.add(pos.board[startrow][startcol]);
-                    //System.out.println("Diag 4 ("+startrow+", "+ startcol+"): "+pos.board[startrow][startcol]);
-                }
-                startcol--;
-
-                startrow++;
-            }
-            int count = 0;
-            for (int i = 0; i < list.size() - 2; i++) {
-                if (list.get(i) == list.get(i + 1)) {
-                    count++;
-                }
-            }
-            if (list.size() > 2 && list.get(list.size() - 2) == list.get(list.size() - 1)) {
-                count++;
-            }
-            //System.out.println("Diag 1 count : "+count);
-            if (count == 4) {
+        for (int j = 0; j < 19; j++) {
+            if (pos.board[14][j] == pos.board[15][j] && pos.board[15][j] == pos.board[16][j]
+                    && pos.board[16][j] == pos.board[17][j] && pos.board[17][j] == pos.board[18][j]
+                    && pos.board[14][j] == target) {
+                System.out.println("HORIZONTAL 4 LAST!");
                 return true;
             }
         }
         return false;
     }
 
-    // --------- Fonction : wonPosition -------------
-    // This function calculates the score by evaluating the stone positions in
-    // horizontal direction
+    /* This method returns true if there is any consecutive stones of
+    * the enemy on the board in a diagonal line, the number of consecutive stones 
+    * is specified in the parameters, as well as the starting position to check
+    */
+    public boolean checkTimesInDiagonal(GomokuPosition pos, int x, int y, int numberOfCells) {
+        int count = 0;
+        int target = pos.board[x][y];
+        int i = x;
+        int j = y;
+        //check for right diagonal
+        while (i < 19 && j < 19) {
+            if (pos.board[i++][j++] == target) {
+                count++;
+                if (count == numberOfCells) {
+                    return true;
+                }
+            } else {
+                count = 0;
+            }
+        }
+        count = 0;
+        i = x;
+        j = y;
+        //check for left diagonal
+        while (i >= 0 && j >= 0) {
+            if (pos.board[i--][j--] == target) {
+                count++;
+                if (count == numberOfCells) {
+                    return true;
+                }
+            } else {
+                count = 0;
+            }
+        }
+        count = 0;
+        i = x;
+        j = y;
+        //check for right down diagonal
+        while (i >= 0 && j < 19) {
+            if (pos.board[i--][j++] == target) {
+                count++;
+                if (count == numberOfCells) {
+                    return true;
+                }
+            } else {
+                count = 0;
+            }
+        }
+        count = 0;
+        i = x;
+        j = y;
+        //check for left down diagonal
+        while (i < 19 && j >= 0) {
+            if (pos.board[i++][j--] == target) {
+                count++;
+                if (count == numberOfCells) {
+                    return true;
+                }
+            } else {
+                count = 0;
+            }
+        }
+        return false;
+    }
+
+
     @Override
     public boolean wonPosition(Position p, boolean player) {
         if (GameSearch.DEBUG) {
@@ -248,343 +260,304 @@ public class Gomoku extends GameSearch {
         return ret;
     }
 
-    // --------- Fonction : positionEvaluation ------------
+    
     @Override
     public float positionEvaluation(Position p, boolean player) {
-        int cnt = 0;
+
+        //evaluationCount++;
+
+        // Get board score of both players.
+        float blackScore = getScore(p, true, player);
+        float whiteScore = getScore(p, false, player);
+
+        if (whiteScore == 0) {
+            whiteScore = 1.0f;
+        }
+
+        // Calculate relative score of white against black
+        return blackScore / whiteScore;
+    }
+
+    /* This function calculates the board score of the specified player
+    */
+    public float getScore(Position p, boolean player, boolean blacksTurn) {
+
         GomokuPosition pos = (GomokuPosition) p;
-        for (int i = 0; i < 19; i++) {
-            for (int j = 0; j < 19; j++) {
-                if (pos.board[i][j] == 0) {
-                    cnt++;
-                }
-            }
-        }
-        //System.out.println("CNT1 "+cnt);
-        cnt = 362 - cnt;
-        //System.out.println("CNT2 "+cnt);
-        float count = 0.1f;
 
-        for (int i = 0; i < 18; i++) {
-            ArrayList<Integer> human = new ArrayList<Integer>();
-            ArrayList<Integer> program = new ArrayList<Integer>();
-            for (int j = 0; j < 19; j++) {
-                if (pos.board[i][j] == pos.board[i + 1][j] && pos.board[i][j] == 1) {
-                    human.add(pos.board[i][j]);
-                } else if (pos.board[i][j] == pos.board[i + 1][j] && pos.board[i][j] == -1) {
-                    program.add(pos.board[i][j]);
-                }
-            }
-            for (int j = 0; j < 19; j++) {
-                if (pos.board[17][j] == pos.board[18][j] && pos.board[18][j] == 1) {
-                    human.add(pos.board[18][j]);
-                } else if (pos.board[17][j] == pos.board[18][j] && pos.board[18][j] == -1) {
-                    program.add(pos.board[18][j]);
-                }
-            }
-            int consecutiveForProgram = 0;
-            int consecutiveForHuman = 0;
-            for (int k = 0; k < human.size() - 2; k++) {
-                if (human.get(k) == human.get(k + 1)) {
-                    consecutiveForHuman++;
-                }
-            }
-            for (int k = 0; k < program.size() - 2; k++) {
-                if (program.get(k) == program.get(k + 1)) {
-                    consecutiveForProgram++;
-                }
-            }
-            if (human.size() > 2 && human.get(human.size() - 2) == human.get(human.size() - 1)) {
-                consecutiveForHuman++;
-            }
-            if (program.size() > 2 && program.get(program.size() - 2) == program.get(program.size() - 1)) {
-                consecutiveForProgram++;
-            }
-            if (consecutiveForHuman == 2) {
-                count = count + 0.2f;
-            }
-            if (consecutiveForProgram == 2) {
-                count = count - 0.2f;
-            }
-            if (consecutiveForHuman == 3) {
-                count = count + 0.3f;
-            }
-            if (consecutiveForProgram == 3) {
-                count = count - 0.3f;
-            }
-            if (consecutiveForHuman == 4) {
-                count = count + 0.4f;
-            }
-            if (consecutiveForProgram == 4) {
-                count = count - 0.4f;
-            }
-        }
-        for (int i = 0; i < 19; i++) {
-            ArrayList<Integer> human = new ArrayList<Integer>();
-            ArrayList<Integer> program = new ArrayList<Integer>();
-            for (int j = 0; j < 18; j++) {
-                if (pos.board[i][j] == pos.board[i][j + 1] && pos.board[i][j] == 1) {
-                    human.add(pos.board[i][j]);
-                } else if (pos.board[i][j] == pos.board[i][j + 1] && pos.board[i][j] == -1) {
-                    program.add(pos.board[i][j]);
-                }
-            }
-            for (int j = 0; j < 19; j++) {
-                if (pos.board[j][17] == pos.board[j][18] && pos.board[j][18] == 1) {
-                    human.add(pos.board[j][18]);
-                }
+        // Calculate score for each of the 3 directions
+        return evaluateHorizontal(pos.board, player, blacksTurn)
+                + evaluateVertical(pos.board, player, blacksTurn)
+                + evaluateDiagonal(pos.board, player, blacksTurn);
+    }
 
-                if (pos.board[j][17] == pos.board[j][18] && pos.board[j][18] == -1) {
-                    program.add(pos.board[j][18]);
+    /* This function calculates the score by evaluating the stone 
+    * positions in horizontal direction
+    */
+    public static int evaluateHorizontal(int[][] boardMatrix, boolean forBlack, boolean playersTurn) {
+
+        int consecutive = 0;
+        // blocks variable is used to check if a consecutive stone set is blocked by the opponent or
+        // the board border. If the both sides of a consecutive set is blocked, blocks variable will be 2
+        // If only a single side is blocked, blocks variable will be 1, and if both sides of the consecutive
+        // set is free, blocks count will be 0.
+        // By default, first cell in a row is blocked by the left border of the board.
+        // If the first cell is empty, block count will be decremented by 1.
+        // If there is another empty cell after a consecutive stones set, block count will again be 
+        // decremented by 1.
+        int blocks = 2;
+        int score = 0;
+
+        // Iterate over all rows
+        for (int i = 0; i < boardMatrix.length; i++) {
+            // Iterate over all cells in a row
+            for (int j = 0; j < boardMatrix[0].length; j++) {
+                // Check if the selected player has a stone in the current cell
+                if (boardMatrix[i][j] == (forBlack ? 1 : -1)) {
+                    // Increment consecutive stones count
+                    consecutive++;
+                } // Check if cell is empty
+                else if (boardMatrix[i][j] == 0) {
+                    // Check if there were any consecutive stones before this empty cell
+                    if (consecutive > 0) {
+                        // Consecutive set is not blocked by opponent, decrement block count
+                        blocks--;
+                        // Get consecutive set score
+                        score += getConsecutiveSetScore(consecutive, blocks, forBlack == playersTurn);
+                        // Reset consecutive stone count
+                        consecutive = 0;
+                        // Current cell is empty, next consecutive set will have at most 1 blocked side.
+                        blocks = 1;
+                    } else {
+                        // No consecutive stones.
+                        // Current cell is empty, next consecutive set will have at most 1 blocked side.
+                        blocks = 1;
+                    }
+                } // Cell is occupied by opponent
+                // Check if there were any consecutive stones before this empty cell
+                else if (consecutive > 0) {
+                    // Get consecutive set score
+                    score += getConsecutiveSetScore(consecutive, blocks, forBlack == playersTurn);
+                    // Reset consecutive stone count
+                    consecutive = 0;
+                    // Current cell is occupied by opponent, next consecutive set may have 2 blocked sides
+                    blocks = 2;
+                } else {
+                    // Current cell is occupied by opponent, next consecutive set may have 2 blocked sides
+                    blocks = 2;
                 }
             }
-            int consecutiveForProgram = 0;
-            int consecutiveForHuman = 0;
-            for (int k = 0; k < human.size() - 2; k++) {
-                if (human.get(k) == human.get(k + 1)) {
-                    consecutiveForHuman++;
-                }
+            // End of row, check if there were any consecutive stones before we reached right border
+            if (consecutive > 0) {
+                score += getConsecutiveSetScore(consecutive, blocks, forBlack == playersTurn);
             }
-            for (int k = 0; k < program.size() - 2; k++) {
-                if (program.get(k) == program.get(k + 1)) {
-                    consecutiveForProgram++;
-                }
-            }
-            if (human.size() > 2 && human.get(human.size() - 2) == human.get(human.size() - 1)) {
-                consecutiveForHuman++;
-            }
-            if (program.size() > 2 && program.get(program.size() - 2) == program.get(program.size() - 1)) {
-                consecutiveForProgram++;
-            }
-            if (consecutiveForHuman == 2) {
-                count = count + 0.2f;
-            }
-            if (consecutiveForProgram == 2) {
-                count = count - 0.2f;
-            }
-            if (consecutiveForHuman == 3) {
-                count = count + 0.3f;
-            }
-            if (consecutiveForProgram == 3) {
-                count = count - 0.3f;
-            }
-            if (consecutiveForHuman == 4) {
-                count = count + 0.4f;
-            }
-            if (consecutiveForProgram == 4) {
-                count = count - 0.4f;
-            }
+            // Reset consecutive stone and blocks count
+            consecutive = 0;
+            blocks = 2;
         }
 
-        for (int g = 0; g < 19; g++) {
-            ArrayList<Integer> human = new ArrayList<Integer>();
-            ArrayList<Integer> program = new ArrayList<Integer>();
-            for (int i = 0, j = g; j < 19; i++, j++) {
-                if (pos.board[i][j] == 1) {
-                    human.add(pos.board[i][j]);
-                } else if (pos.board[i][j] == -1) {
-                    program.add(pos.board[i][j]);
+        return score;
+    }
+
+    /* This function calculates the score by evaluating the stone positions in vertical direction
+    * The procedure is the exact same of the horizontal one.
+    */
+    public static int evaluateVertical(int[][] boardMatrix, boolean forBlack, boolean playersTurn) {
+
+        int consecutive = 0;
+        int blocks = 2;
+        int score = 0;
+
+        for (int j = 0; j < boardMatrix[0].length; j++) {
+            for (int i = 0; i < boardMatrix.length; i++) {
+                if (boardMatrix[i][j] == (forBlack ? 1 : -1)) {
+                    consecutive++;
+                } else if (boardMatrix[i][j] == 0) {
+                    if (consecutive > 0) {
+                        blocks--;
+                        score += getConsecutiveSetScore(consecutive, blocks, forBlack == playersTurn);
+                        consecutive = 0;
+                        blocks = 1;
+                    } else {
+                        blocks = 1;
+                    }
+                } else if (consecutive > 0) {
+                    score += getConsecutiveSetScore(consecutive, blocks, forBlack == playersTurn);
+                    consecutive = 0;
+                    blocks = 2;
+                } else {
+                    blocks = 2;
                 }
             }
-            int consecutiveForProgram = 0;
-            int consecutiveForHuman = 0;
-            for (int k = 0; k < human.size() - 2; k++) {
-                if (human.get(k) == human.get(k + 1)) {
-                    consecutiveForHuman++;
-                }
+            if (consecutive > 0) {
+                score += getConsecutiveSetScore(consecutive, blocks, forBlack == playersTurn);
+
             }
-            for (int k = 0; k < program.size() - 2; k++) {
-                if (program.get(k) == program.get(k + 1)) {
-                    consecutiveForProgram++;
-                }
-            }
-            if (human.size() > 2 && human.get(human.size() - 2) == human.get(human.size() - 1)) {
-                consecutiveForHuman++;
-            }
-            if (program.size() > 2 && program.get(program.size() - 2) == program.get(program.size() - 1)) {
-                consecutiveForProgram++;
-            }
-            if (consecutiveForHuman == 2) {
-                count = count + 0.2f;
-            }
-            if (consecutiveForProgram == 2) {
-                count = count - 0.2f;
-            }
-            if (consecutiveForHuman == 3) {
-                count = count + 0.3f;
-            }
-            if (consecutiveForProgram == 3) {
-                count = count - 0.3f;
-            }
-            if (consecutiveForHuman == 4) {
-                count = count + 0.4f;
-            }
-            if (consecutiveForProgram == 4) {
-                count = count - 0.4f;
-            }
+            consecutive = 0;
+            blocks = 2;
+
         }
-        for (int g = 0; g < 19; g++) {
-            ArrayList<Integer> human = new ArrayList<Integer>();
-            ArrayList<Integer> program = new ArrayList<Integer>();
-            for (int i = 0, j = g + 1; j < 19; i++, j++) {
-                if (pos.board[i][j] == 1) {
-                    human.add(pos.board[i][j]);
-                } else if (pos.board[i][j] == -1) {
-                    program.add(pos.board[i][j]);
+        return score;
+    }
+
+    /* This function calculates the score by evaluating the stone positions in diagonal directions
+    * The procedure is the exact same of the horizontal calculation.
+    */
+    public static int evaluateDiagonal(int[][] boardMatrix, boolean forBlack, boolean playersTurn) {
+
+        int consecutive = 0;
+        int blocks = 2;
+        int score = 0;
+        // From bottom-left to top-right diagonally
+        for (int k = 0; k <= 2 * (boardMatrix.length - 1); k++) {
+            int iStart = Math.max(0, k - boardMatrix.length + 1);
+            int iEnd = Math.min(boardMatrix.length - 1, k);
+            for (int i = iStart; i <= iEnd; ++i) {
+                int j = k - i;
+
+                if (boardMatrix[i][j] == (forBlack ? 1 : -1)) {
+                    consecutive++;
+                } else if (boardMatrix[i][j] == 0) {
+                    if (consecutive > 0) {
+                        blocks--;
+                        score += getConsecutiveSetScore(consecutive, blocks, forBlack == playersTurn);
+                        consecutive = 0;
+                        blocks = 1;
+                    } else {
+                        blocks = 1;
+                    }
+                } else if (consecutive > 0) {
+                    score += getConsecutiveSetScore(consecutive, blocks, forBlack == playersTurn);
+                    consecutive = 0;
+                    blocks = 2;
+                } else {
+                    blocks = 2;
                 }
+
             }
-            int consecutiveForProgram = 0;
-            int consecutiveForHuman = 0;
-            for (int k = 0; k < human.size() - 2; k++) {
-                if (human.get(k) == human.get(k + 1)) {
-                    consecutiveForHuman++;
-                }
+            if (consecutive > 0) {
+                score += getConsecutiveSetScore(consecutive, blocks, forBlack == playersTurn);
+
             }
-            for (int k = 0; k < program.size() - 2; k++) {
-                if (program.get(k) == program.get(k + 1)) {
-                    consecutiveForProgram++;
-                }
-            }
-            if (human.size() > 2 && human.get(human.size() - 2) == human.get(human.size() - 1)) {
-                consecutiveForHuman++;
-            }
-            if (program.size() > 2 && program.get(program.size() - 2) == program.get(program.size() - 1)) {
-                consecutiveForProgram++;
-            }
-            if (consecutiveForHuman == 2) {
-                count = count + 0.2f;
-            }
-            if (consecutiveForProgram == 2) {
-                count = count - 0.2f;
-            }
-            if (consecutiveForHuman == 3) {
-                count = count + 0.3f;
-            }
-            if (consecutiveForProgram == 3) {
-                count = count - 0.3f;
-            }
-            if (consecutiveForHuman == 4) {
-                count = count + 0.4f;
-            }
-            if (consecutiveForProgram == 4) {
-                count = count - 0.4f;
-            }
+            consecutive = 0;
+            blocks = 2;
         }
-        for (int col = 0; col < 19; col++) {
-            ArrayList<Integer> human = new ArrayList<Integer>();
-            ArrayList<Integer> program = new ArrayList<Integer>();
-            int startcol = col, startrow = 0;
+        // From top-left to bottom-right diagonally
+        for (int k = 1 - boardMatrix.length; k < boardMatrix.length; k++) {
+            int iStart = Math.max(0, k);
+            int iEnd = Math.min(boardMatrix.length + k - 1, boardMatrix.length - 1);
+            for (int i = iStart; i <= iEnd; ++i) {
+                int j = i - k;
 
-            while (startcol >= 0 && startrow < 19) {
-                if (pos.board[startrow][startcol] == 1) {
-                    human.add(pos.board[startrow][startcol]);
-                } else if (pos.board[startrow][startcol] == -1) {
-                    program.add(pos.board[startrow][startcol]);
+                if (boardMatrix[i][j] == (forBlack ? 1 : -1)) {
+                    consecutive++;
+                } else if (boardMatrix[i][j] == 0) {
+                    if (consecutive > 0) {
+                        blocks--;
+                        score += getConsecutiveSetScore(consecutive, blocks, forBlack == playersTurn);
+                        consecutive = 0;
+                        blocks = 1;
+                    } else {
+                        blocks = 1;
+                    }
+                } else if (consecutive > 0) {
+                    score += getConsecutiveSetScore(consecutive, blocks, forBlack == playersTurn);
+                    consecutive = 0;
+                    blocks = 2;
+                } else {
+                    blocks = 2;
                 }
-                startcol--;
 
-                startrow++;
             }
-            int consecutiveForProgram = 0;
-            int consecutiveForHuman = 0;
-            for (int k = 0; k < human.size() - 2; k++) {
-                if (human.get(k) == human.get(k + 1)) {
-                    consecutiveForHuman++;
-                }
+            if (consecutive > 0) {
+                score += getConsecutiveSetScore(consecutive, blocks, forBlack == playersTurn);
+
             }
-            for (int k = 0; k < program.size() - 2; k++) {
-                if (program.get(k) == program.get(k + 1)) {
-                    consecutiveForProgram++;
-                }
-            }
-            if (human.size() > 2 && human.get(human.size() - 2) == human.get(human.size() - 1)) {
-                consecutiveForHuman++;
-            }
-            if (program.size() > 2 && program.get(program.size() - 2) == program.get(program.size() - 1)) {
-                consecutiveForProgram++;
-            }
-            if (consecutiveForHuman == 2) {
-                count = count + 0.2f;
-            }
-            if (consecutiveForProgram == 2) {
-                count = count - 0.2f;
-            }
-            if (consecutiveForHuman == 3) {
-                count = count + 0.3f;
-            }
-            if (consecutiveForProgram == 3) {
-                count = count - 0.3f;
-            }
-            if (consecutiveForHuman == 4) {
-                count = count + 0.4f;
-            }
-            if (consecutiveForProgram == 4) {
-                count = count - 0.4f;
-            }
+            consecutive = 0;
+            blocks = 2;
         }
-        for (int row = 1; row < 19; row++) {
-            ArrayList<Integer> human = new ArrayList<Integer>();
-            ArrayList<Integer> program = new ArrayList<Integer>();
-            int startrow = row, startcol = 19 - 1;
+        return score;
+    }
 
-            while (startrow < 19 && startcol >= 0) {
-                if (pos.board[startrow][startcol] == 1) {
-                    human.add(pos.board[startrow][startcol]);
-                } else if (pos.board[startrow][startcol] == -1) {
-                    program.add(pos.board[startrow][startcol]);
-                }
-                startcol--;
+    /* This function returns the score of a given consecutive stone set.
+    * count: Number of consecutive stones in the set
+    * blocks: Number of blocked sides of the set (2: both sides blocked, 1: 
+    * single side blocked, 0: both sides free)
+    */
+    public static int getConsecutiveSetScore(int count, int blocks, boolean currentTurn) {
+        final int winGuarantee = 1000000;
+        // If both sides of a set is blocked, this set is worthless return 0 points.
+        if (blocks == 2 && count < 5) {
+            return 0;
+        }
 
-                startrow++;
+        switch (count) {
+            case 5: {
+                // 5 consecutive wins the game
+                return winScore;
             }
-            int consecutiveForProgram = 0;
-            int consecutiveForHuman = 0;
-            for (int k = 0; k < human.size() - 2; k++) {
-                if (human.get(k) == human.get(k + 1)) {
-                    consecutiveForHuman++;
+            case 4: {
+                // 4 consecutive stones in the user's turn guarantees a win.
+                // (User can win the game by placing the 5th stone after the set)
+                if (currentTurn) {
+                    return winGuarantee;
+                } else {
+                    // Opponent's turn
+                    // If neither side is blocked, 4 consecutive stones guarantees a win in the next turn.
+                    if (blocks == 0) {
+                        return winGuarantee / 4;
+                    } // If only a single side is blocked, 4 consecutive stones limits the opponents move
+                    // (Opponent can only place a stone that will block the remaining side, otherwise the game is lost
+                    // in the next turn). So a relatively high score is given for this set.
+                    else {
+                        return 200;
+                    }
                 }
             }
-            for (int k = 0; k < program.size() - 2; k++) {
-                if (program.get(k) == program.get(k + 1)) {
-                    consecutiveForProgram++;
+            case 3: {
+                // 3 consecutive stones
+                if (blocks == 0) {
+                    // Neither side is blocked.
+                    // If it's the current player's turn, a win is guaranteed in the next 2 turns.
+                    // (User places another stone to make the set 4 consecutive, opponent can only block one side)
+                    // However the opponent may win the game in the next turn therefore this score is lower than win
+                    // guaranteed scores but still a very high score.
+                    if (currentTurn) {
+                        return 50000;
+                    } // If it's the opponent's turn, this set forces opponent to block one of the sides of the set.
+                    // So a relatively high score is given for this set.
+                    else {
+                        return 200;
+                    }
+                } else {
+                    // One of the sides is blocked.
+                    // Playmaker scores
+                    if (currentTurn) {
+                        return 10;
+                    } else {
+                        return 5;
+                    }
                 }
             }
-            if (human.size() > 2 && human.get(human.size() - 2) == human.get(human.size() - 1)) {
-                consecutiveForHuman++;
+            case 2: {
+                // 2 consecutive stones
+                // Playmaker scores
+                if (blocks == 0) {
+                    if (currentTurn) {
+                        return 7;
+                    } else {
+                        return 5;
+                    }
+                } else {
+                    return 3;
+                }
             }
-            if (program.size() > 2 && program.get(program.size() - 2) == program.get(program.size() - 1)) {
-                consecutiveForProgram++;
-            }
-            if (consecutiveForHuman == 2) {
-                count = count + 0.2f;
-            }
-            if (consecutiveForProgram == 2) {
-                count = count - 0.2f;
-            }
-            if (consecutiveForHuman == 3) {
-                count = count + 0.3f;
-            }
-            if (consecutiveForProgram == 3) {
-                count = count - 0.3f;
-            }
-            if (consecutiveForHuman == 4) {
-                count = count + 0.4f;
-            }
-            if (consecutiveForProgram == 4) {
-                count = count - 0.4f;
+            case 1: {
+                return 1;
             }
         }
 
-        float ret = (count - 1.0f);
-        if (wonPosition(p, player)) {
-            return count + (1.0f / cnt);
-        }
-        if (wonPosition(p, !player)) {
-            return -(count + (1.0f / cnt));
-        }
-        //System.out.println("COUNT "+count);
-        //System.out.println("CNT "+cnt);
-        return ret;
+        // More than 5 consecutive stones? 
+        return winScore * 2;
     }
 
     @Override
@@ -608,45 +581,36 @@ public class Gomoku extends GameSearch {
         System.out.println();
     }
 
-    // --------- Fonction : possibleMoves ------------
+    
     @Override
     public Position[] possibleMoves(Position p, boolean player) {
-        if (GameSearch.DEBUG) {
-            System.out.println("posibleMoves(" + p + "," + player + ")");
-        }
         GomokuPosition pos = (GomokuPosition) p;
         int count = 0;
-        for (int i = 0; i < 19; i++) {
+        for (int i = 0; i < pos.board.length; i++) {
             for (int j = 0; j < 19; j++) {
-                if (pos.board[i][j] == 0) {
+                if (pos.board[i][j] == GomokuPosition.BLANK) {
                     count++;
                 }
             }
         }
-        if (count == 0) {
-            return null;
-        }
+
         Position[] ret = new Position[count];
         count = 0;
-        for (int i = 0; i < 19; i++) {
+        for (int i = 0; i < pos.board.length; i++) {
             for (int j = 0; j < 19; j++) {
-                if (pos.board[i][j] == 0) {
+                if (pos.board[i][j] == GomokuPosition.BLANK) {
                     GomokuPosition pos2 = new GomokuPosition();
-                    for (int l = 0; l < 19; l++) {
-                        for (int k = 0; k < 19; k++) {
-                            pos2.board[l][k] = pos.board[l][k];
+                    for (int k = 0; k < 19; k++) {
+                        for (int l = 0; l < 19; l++) {
+                            pos2.board[k][l] = pos.board[k][l];
                         }
                     }
-
                     if (player) {
-                        pos2.board[i][j] = 1;
+                        pos2.board[i][j] = GomokuPosition.HUMAN;
                     } else {
-                        pos2.board[i][j] = -1;
+                        pos2.board[i][j] = GomokuPosition.PROGRAM;
                     }
                     ret[count++] = pos2;
-                    if (GameSearch.DEBUG) {
-                        System.out.println("    " + pos2);
-                    }
                 }
             }
         }
@@ -689,7 +653,7 @@ public class Gomoku extends GameSearch {
 
     @Override
     public boolean reachedMaxDepth(Position p, int depth) {
-//        System.out.println("reachedMaxDepth");
+        //System.out.println("reachedMaxDepth");
         boolean ret = false;
         if (depth >= Gomoku.depth) {
             return true;
@@ -699,7 +663,7 @@ public class Gomoku extends GameSearch {
         } else if (wonPosition(p, true)) {
             ret = true;
         } else if (drawnPosition(p)) {
-            ret = true; //personne n'a gagner  mais on est a la fin 
+            ret = true; 
         }
         if (GameSearch.DEBUG) {
             System.out.println("reachedMaxDepth: pos=" + p.toString() + ", depth=" + depth
@@ -716,7 +680,6 @@ public class Gomoku extends GameSearch {
         if (GameSearch.DEBUG) {
             System.out.println("Enter blank square index [0,8]:");
         }
-        //System.out.println("x :");
         GomokuMove mm = new GomokuMove();
         if (Gomoku.isClicked) {
             mm.moveIndexX = Gomoku.stoneX;
@@ -726,322 +689,18 @@ public class Gomoku extends GameSearch {
             Gomoku.isClicked = false;
             Gomoku.gameOver = false;
         }
+
         return mm;
     }
 
-    public class BoardPanel extends javax.swing.JPanel {
-
-        public Cell board[][];          //------ Tables des cellule qui vont construire notre othellier
-        public int TAILLE_BOARD = 570;    //------ Dimension de notre plateau   
-
-        //------- Constructeur -----------
-        public BoardPanel() {
-            initComponents();
-            creation();
-        }
-
-        //----------- Getter--------------
-        public Cell[][] getBoard() {
-            return board;
-        }
-
-        public void setBoard(Cell[][] board) {
-            this.board = board;
-        }
-
-        /**
-         * This method is called from within the constructor to initialize the
-         * form. WARNING: Do NOT modify this code. The content of this method is
-         * always regenerated by the Form Editor.
-         */
-        @SuppressWarnings("unchecked")
-        // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
-        private void initComponents() {
-
-            setBackground(new java.awt.Color(255, 204, 204));
-            setPreferredSize(new java.awt.Dimension(760, 760));
-
-            javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-            this.setLayout(layout);
-            layout.setHorizontalGroup(
-                    layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGap(0, 487, Short.MAX_VALUE)
-            );
-            layout.setVerticalGroup(
-                    layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGap(0, 428, Short.MAX_VALUE)
-            );
-        }// </editor-fold>                        
-
-        //------ Creation des cellules -----------
-        public void creation() {
-
-            //------ L'instanciation 
-            board = new Cell[19][19];
-
-            int count = 0;
-            for (int i = 0; i < 19; i++) {
-                for (int j = 0; j < 19; j++) {
-                    count++;
-                    if (count % 20 == 0) {
-                        break;
-                    }
-                    board[i][j] = new Cell(i, j);
-                    board[i][j].setBounds(j * Cell.TAILLE_CELL, i * Cell.TAILLE_CELL, Cell.TAILLE_CELL, Cell.TAILLE_CELL);
-                    int indexX = i;
-                    int indexY = j;
-                    Cell cel = board[i][j];
-                    board[i][j].addMouseListener(new MouseAdapter() {
-                        public void mouseClicked(MouseEvent e) {
-                            //setAIThinking(false);
-                            System.out.println("Mouse Clicked\n ");
-                            Position startingPosition = Gomoku.position;
-                            System.out.println("x:" + indexX);
-                            System.out.println("x:" + indexY);
-                            if (Gomoku.playMode == Gomoku.PlayModeType.HUMAN_VS_COMPUTER && !gameOver && canClick && playerTurn) {
-
-                                for (int i = 0; i < 19; i++) {
-                                    for (int j = 0; j < 19; j++) {
-                                        if (indexX == i && indexY == j) {
-                                            Gomoku.isClicked = true;
-                                            Gomoku.stoneX = indexX;
-                                            Gomoku.stoneY = indexY;
-                                            Move move = createMove();
-                                            startingPosition = (Position) makeMove(startingPosition, playerTurn, move);
-                                            cel.drawPion(Color.BLACK);
-                                            printPosition(startingPosition);
-                                            if (wonPosition(startingPosition, GameSearch.HUMAN)) {
-                                                JOptionPane.showMessageDialog(null, "Human won!");
-                                                Home.resultText.setText("Human won!");
-                                                Gomoku.gameOver = true;
-                                                return;
-                                            } else if (drawnPosition(startingPosition)) {
-                                                JOptionPane.showMessageDialog(null, "Draw game!");
-                                                Home.resultText.setText("Draw game!");
-                                                Gomoku.gameOver = true;
-                                                return;
-                                            }
-                                        }
-                                    }
-                                }
-                                cel.repaint();
-                                Gomoku.position = (GomokuPosition) startingPosition;
-                                System.out.println("Printing\n" + Gomoku.position);
-                                setBoardFromGomokuPosition(Gomoku.position);
-
-                                Gomoku.playerTurn = GameSearch.PROGRAM;
-                                if (Gomoku.playMode == Gomoku.PlayModeType.HUMAN_VS_COMPUTER) {
-                                    Gomoku.canClick = false;
-                                } else {
-                                    Gomoku.canClick = true;
-                                }
-
-                                if (!gameOver && !canClick && !playerTurn) {
-
-                                    Thread thread = new Thread(new Runnable() {
-                                        public void run() {
-                                            setAIThinking(true);
-                                            Position startingPosition = Gomoku.position;
-                                            printPosition(startingPosition);
-                                            Vector v = alphaBeta(0, startingPosition, GameSearch.PROGRAM);
-                                            Enumeration enum2 = v.elements();
-
-                                            startingPosition = (Position) v.elementAt(1);
-                                            Gomoku.position = (GomokuPosition) startingPosition;
-                                            setBoardFromGomokuPosition(Gomoku.position);
-                                            Gomoku.leftStonesForPlayer2 -= 1;
-                                            Home.leftWhiteStonesText.setText(Integer.toString(Gomoku.leftStonesForPlayer2));
-                                            Gomoku.playerTurn = GameSearch.HUMAN;
-                                            Gomoku.canClick = true;
-
-                                            if (wonPosition(startingPosition, GameSearch.PROGRAM)) {
-                                                JOptionPane.showMessageDialog(null, "Computer won!");
-                                                Home.resultText.setText("Computer won!");
-                                                Gomoku.gameOver = true;
-
-                                                return;
-                                            } else if (drawnPosition(startingPosition)) {
-                                                JOptionPane.showMessageDialog(null, "Draw game!");
-                                                Home.resultText.setText("Draw game!");
-                                                Gomoku.gameOver = true;
-                                                return;
-                                            }
-                                        }
-                                    });
-
-                                    thread.setPriority(Thread.MAX_PRIORITY);
-                                    thread.start();
-                                    Gomoku.canClick = true;
-                                    setAIThinking(false);
-                                    setBoardFromGomokuPosition(Gomoku.position);
-                                }
-                            } else if (Gomoku.playMode == Gomoku.PlayModeType.HUMAN_VS_HUMAN && !gameOver && canClick) {
-
-                                startingPosition = Gomoku.position;
-                                if (playerTurn) {
-                                    for (int i = 0; i < 19; i++) {
-                                        for (int j = 0; j < 19; j++) {
-                                            if (indexX == i && indexY == j) {
-                                                Gomoku.isClicked = true;
-                                                Gomoku.stoneX = indexX;
-                                                Gomoku.stoneY = indexY;
-                                                Move move = createMove();
-                                                startingPosition = (Position) makeMove(startingPosition, GameSearch.HUMAN, move);
-
-                                                Gomoku.position = (GomokuPosition) startingPosition;
-                                                setBoardFromGomokuPosition(Gomoku.position);
-                                                printPosition(startingPosition);
-                                                if (wonPosition(startingPosition, GameSearch.HUMAN)) {
-                                                    JOptionPane.showMessageDialog(null, "First Player won!");
-                                                    Home.resultText.setText("First Player won!");
-                                                    Gomoku.gameOver = true;
-                                                    return;
-                                                } else if (drawnPosition(startingPosition)) {
-                                                    JOptionPane.showMessageDialog(null, "Draw game!");
-                                                    Home.resultText.setText("Draw game!");
-                                                    Gomoku.gameOver = true;
-                                                    return;
-                                                }
-                                            }
-                                        }
-
-                                        cel.repaint();
-                                        Gomoku.playerTurn = GameSearch.PROGRAM;
-                                        Gomoku.canClick = true;
-                                        Gomoku.position = (GomokuPosition) startingPosition;
-                                        System.out.println("Printing\n" + Gomoku.position);
-                                        setBoardFromGomokuPosition(Gomoku.position);
-                                    }
-
-                                } else {
-                                    for (int i = 0; i < 19; i++) {
-                                        for (int j = 0; j < 19; j++) {
-                                            if (indexX == i && indexY == j) {
-                                                Gomoku.isClicked = true;
-                                                Gomoku.stoneX = indexX;
-                                                Gomoku.stoneY = indexY;
-                                                Move move = createMove();
-                                                startingPosition = (Position) makeMove(startingPosition, GameSearch.PROGRAM, move);
-
-                                                Gomoku.position = (GomokuPosition) startingPosition;
-                                                setBoardFromGomokuPosition(Gomoku.position);
-                                                printPosition(startingPosition);
-                                                if (wonPosition(startingPosition, GameSearch.PROGRAM)) {
-                                                    JOptionPane.showMessageDialog(null, "Second Player won!");
-                                                    Home.resultText.setText("Second Player won!");
-                                                    Gomoku.gameOver = true;
-                                                    return;
-                                                } else if (drawnPosition(startingPosition)) {
-                                                    JOptionPane.showMessageDialog(null, "Draw game!");
-                                                    Home.resultText.setText("Draw game!");
-                                                    Gomoku.gameOver = true;
-                                                    return;
-                                                }
-                                            }
-                                        }
-
-                                        cel.repaint();
-                                        Gomoku.playerTurn = GameSearch.HUMAN;
-                                        Gomoku.canClick = true;
-                                        Gomoku.position = (GomokuPosition) startingPosition;
-                                        System.out.println("Printing\n" + Gomoku.position);
-                                        setBoardFromGomokuPosition(Gomoku.position);
-                                    }
-
-                                }
-
-                            }
-                        }
-                    });
-
-                    this.add(board[i][j]);
-
-                }
-
-                count = 0;
-            }
-
-            this.repaint();
-
-        }
-
-        public void setBoardFromGomokuPosition(GomokuPosition position) {
-
-            int count = 0;
-            for (int i = 0; i < 19; i++) {
-                for (int j = 0; j < 19; j++) {
-                    count++;
-                    if (count % 20 == 0) {
-                        break;
-                    }
-                    if (position.board[i][j] == 1) {
-                        board[i][j].drawPion(Color.BLACK);
-                        //System.out.println("Black("+i+", "+j+")");
-                    } else if (position.board[i][j] == -1) {
-                        board[i][j].drawPion(Color.WHITE);
-                        //System.out.println("White ("+i+", "+j+")");
-                    } else if (position.board[i][j] == 0) {
-                        board[i][j].eraseCellule();
-                    }
-                }
-                count = 0;
-            }
-            if (Gomoku.playerTurn) {
-                leftHintText.setText(Integer.toString(Gomoku.leftHintsForPlayer1));
-                if (Gomoku.leftHintsForPlayer1 == 0) {
-                    Home.hintBtn.setEnabled(false);
-                }else
-                    Home.hintBtn.setEnabled(true); 
-            } else {
-                leftHintText.setText(Integer.toString(Gomoku.leftHintsForPlayer2));
-                if (Gomoku.leftHintsForPlayer2 == 0) {
-                    Home.hintBtn.setEnabled(false);
-                }else
-                    Home.hintBtn.setEnabled(true); 
-            }
-            //this.repaint();
-            setAIThinking(false);
-        }
-
-        public void paint(Graphics g) {
-            super.paint(g);
-            Graphics2D g2D = (Graphics2D) g.create();
-
-            if (isAIThinking) {
-                printThinking(g2D);
-            }
-        }
-
-        private void printThinking(Graphics2D g2D) {
-
-            FontMetrics metrics = g2D.getFontMetrics(g2D.getFont());
-            String text = "Thinking...";
-
-            g2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-            g2D.setFont(new java.awt.Font("Times New Roman", 1, 38));
-
-            g2D.setColor(Color.WHITE);
-
-            int x = (570 / 2 - metrics.stringWidth(text) * 2);
-            int y = 570 / 2;
-
-            g2D.drawString(text, x, y);
-        }
-
-        public void setAIThinking(boolean flag) {
-            isAIThinking = flag;
-            repaint();
-        }
-
-        // Variables declaration - do not modify                     
-        // End of variables declaration                   
-    }
-
+    /*
+    * This method is called whenever the Hint Button is clicked
+    */
     public void giveHint() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
                 board.setAIThinking(true);
+                board.setBoardFromGomokuPosition(position);
                 Position startingPosition = Gomoku.position;
                 printPosition(startingPosition);
                 Vector v = alphaBeta(0, startingPosition, playerTurn);
@@ -1049,12 +708,13 @@ public class Gomoku extends GameSearch {
 
                 startingPosition = (Position) v.elementAt(1);
                 Gomoku.position = (GomokuPosition) startingPosition;
-                board.setBoardFromGomokuPosition(Gomoku.position);
+
                 if (playerTurn) {
                     Gomoku.leftStonesForPlayer1 -= 1;
                     Home.leftBlackStonesText.setText(Integer.toString(Gomoku.leftStonesForPlayer1));
+                    board.setBoardFromGomokuPosition(Gomoku.position);
                     Gomoku.playerTurn = GameSearch.PROGRAM;
-                    if (Gomoku.playMode == PlayModeType.HUMAN_VS_COMPUTER) {
+                    if (Gomoku.playMode == Gomoku.PlayModeType.HUMAN_VS_COMPUTER) {
                         Gomoku.canClick = false;
                     } else {
                         Gomoku.canClick = true;
@@ -1074,6 +734,7 @@ public class Gomoku extends GameSearch {
                 } else {
                     Gomoku.leftStonesForPlayer2 -= 1;
                     Home.leftWhiteStonesText.setText(Integer.toString(Gomoku.leftStonesForPlayer2));
+                    board.setBoardFromGomokuPosition(Gomoku.position);
                     Gomoku.playerTurn = GameSearch.HUMAN;
 
                     Gomoku.canClick = true;

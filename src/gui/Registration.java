@@ -4,6 +4,7 @@
  */
 package gui;
 
+import gomokugame.Gomoku;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -16,34 +17,28 @@ import java.util.logging.Logger;
 import javax.swing.JFrame;
 import tools.ConnectionManager;
 import tools.EncryptPassword;
-import gomokugame.Gomoku;
 
 /**
  *
  * @author MSI
  */
-public class Inscription extends javax.swing.JFrame {
+public class Registration extends javax.swing.JFrame {
 
-    /**
-     * *************************************************************************
-     * Les élèment de connection à la base de données *************************
-     *************************************************************************
-     */
     Connection connection = null;
     ResultSet rs = null;
     ResultSet rs2 = null;
     PreparedStatement ps = null;
     EncryptPassword encryptPwd;
 
-    //------------ Cosnstructeur ----------
-    public Inscription() throws SQLException, ClassNotFoundException {
+    //------------ Cosnstructor ----------
+    public Registration() throws SQLException, ClassNotFoundException {
         initComponents();
         this.errorLbl.setVisible(false);
 
-        //--------- Se connecter à la BDD 
+        //--------- Connect to DB
         connection = ConnectionManager.getConnection();
 
-        //----- Centrer la fenetre 
+        //----- Adjust Window
         Dimension screenSize, frameSize;
         int x, y;
         screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -52,14 +47,11 @@ public class Inscription extends javax.swing.JFrame {
         y = (screenSize.height - frameSize.height) / 2;
         setLocation(x, y);
 
-        //------ mettre la fenetre non Resizable
         this.setResizable(false);
 
-        //------ Icon de frame
-        Image icon = Toolkit.getDefaultToolkit().getImage(Inscription.class.getResource("/images/g1.png"));
+        Image icon = Toolkit.getDefaultToolkit().getImage(Registration.class.getResource("/images/g1.png"));
         this.setIconImage(icon);
 
-        //------ Titre de frame
         this.setTitle("Sign In");
     }
 
@@ -183,7 +175,7 @@ public class Inscription extends javax.swing.JFrame {
         pack();
     }// </editor-fold>                        
 
-    //------------ Button d'inscription ----------
+    //------------ Registration Button ----------
     private void inscriptionBtnActionPerformed(java.awt.event.ActionEvent evt) {                                               
         String username = this.nomTxt.getText();
         String email = this.emailTxt.getText();
@@ -216,7 +208,7 @@ public class Inscription extends javax.swing.JFrame {
             }
             this.errorLbl.setVisible(false);
 
-            //------- la requete d'insertion
+            //------- Creating new user
             String qry = "insert into user(username, email, password) values(? , ?, ?)";
             ps = connection.prepareStatement(qry);
             ps.setString(1, username);
@@ -224,7 +216,10 @@ public class Inscription extends javax.swing.JFrame {
             ps.setString(3, encryptPwd.encrypt(password));
             ps.executeUpdate();
 
-            //------- la requete d'insertion
+            /*******************************************************************
+             * The player id is retrieved from the database 
+             * if all the information entered by the player are correct
+             ******************************************************************/
             String findUserQuery = "select id_user from user where email=? and password=?";
             ps = connection.prepareStatement(findUserQuery);
             ps.setString(1, email);
@@ -233,17 +228,17 @@ public class Inscription extends javax.swing.JFrame {
 
             while (this.rs.next()) {
 
-                //------ retourner l'id de l'tilisateur
+                //------ retrieve user id 
                 idUser = this.rs.getInt(1);
-
-                //------ fermer la page d'authentification
+                
                 dispose();
+                
                 errorLbl.setVisible(false);
 
                 break;
             }
 
-            //------- la requete d'insertion
+            //------- Creating new game for the new user
             String positionQuery = "insert into game (board, state, left_black_stones, left_white_stones, left_black_hints, left_white_hints, id_user) values(?, ?, ?, ?, ?, ?, ?)";
             ps = connection.prepareStatement(positionQuery);
             ps.setString(1, br);
@@ -256,27 +251,27 @@ public class Inscription extends javax.swing.JFrame {
 
             ps.executeUpdate();
 
-            //------- On s'authentifier en recuperant l'email et le password
+            //------- or log in using email and password
             Authentication auth = new Authentication(email, password);
             auth.setVisible(true);
 
-            dispose();  //-----fermer la fenêtre
+            dispose();  //-----close window
 
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
             this.errorLbl.setVisible(true);
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(Inscription.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Registration.class.getName()).log(Level.SEVERE, null, ex);
         }
     }                                              
 
-    //------------ Button Quitter ----------
+    //------------ Exit Button ----------
     private void exitActionPerformed(java.awt.event.ActionEvent evt) {                                     
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         dispose();
     }                                    
 
-    //------------ Button de connexion ----------
+    //------------ Authentication Button ----------
     private void connexionBtnActionPerformed(java.awt.event.ActionEvent evt) {                                             
 
         try {
@@ -285,9 +280,9 @@ public class Inscription extends javax.swing.JFrame {
             this.dispose();
 
         } catch (SQLException ex) {
-            Logger.getLogger(Inscription.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Registration.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(Inscription.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Registration.class.getName()).log(Level.SEVERE, null, ex);
         }
 
 

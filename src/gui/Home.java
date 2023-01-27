@@ -18,8 +18,6 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import gomokugame.Gomoku;
 import gomokugame.PlayGomoku;
-import java.awt.Canvas;
-import java.awt.Graphics;
 import tools.ConnectionManager;
 import tools.GomokuPosition;
 
@@ -29,23 +27,14 @@ import tools.GomokuPosition;
  */
 public class Home extends javax.swing.JFrame {
 
-    /**
-     * *************************************************************************
-     * Les élèments de connection à la base de données *************************
-     * ************************************************************************
-     */
     Connection connection = null;
     ResultSet rs = null;
     PreparedStatement ps = null;
 
-    public static int idUser = 0;      //----- La variable correspondant au id du joeur
-    public static int idPartie = 0;    //----- La variable correspondant au id d'une partie d'un joueur
-
-//public static BoardPanel board;     
+    public static int idUser = 0;      //----- To store the user Id
+    public static int idPartie = 0;    //----- To store the game Id
 
     //------- Getters & Setters -----------
-    
-
     public int getIdUser() {
         return this.idUser;
     }
@@ -54,27 +43,27 @@ public class Home extends javax.swing.JFrame {
         this.idUser = idUser;
     }
 
-    //------- Constructeur -----------
+    //------------ Cosnstructor ----------
     public Home() throws SQLException, ClassNotFoundException {
         initComponents();
 
+        //--------- Update game state
         Gomoku.gameOver = false;
         leftHintText.setEditable(false);
         leftBlackStonesText.setEditable(false);
         playPositionBtn.setEnabled(false);
 
-        //------- Se connecter à la BDD
+        //--------- Connect to DB
         connection = ConnectionManager.getConnection();
 
-        //------- Creer un nouveau plateau 
+        //------- Adjust game board
         PlayGomoku.gomoku.board.setBounds(0, 0, 570, 570);
         boardPane.add(PlayGomoku.gomoku.board);
         boardPane.repaint();
 
         /**
          * *********************************************************************
-         * La requete de selection l'id et l'etat d'une partie, un etat signifie
-         * si la partie est terminé ou non
+         * Retrieving game id and game state elements from the database
          * *******************************************************************
          */
         String qry = "select id_game, state, left_black_stones, left_white_stones, left_black_hints, left_white_hints from game where id_user = ?";
@@ -84,8 +73,6 @@ public class Home extends javax.swing.JFrame {
 
         int state;
         while (this.rs.next()) {
-            //this.positionUserCB.addItem(String.valueOf(this.rs.getInt(1))
-            //        + "  " + String.valueOf(this.rs.getInt(2) == 0 ? "Non" : "Oui"));
             state = this.rs.getInt(2);
             Gomoku.leftStonesForPlayer1 = this.rs.getInt(3);
             Gomoku.leftStonesForPlayer2 = this.rs.getInt(4);
@@ -93,27 +80,29 @@ public class Home extends javax.swing.JFrame {
             Gomoku.leftHintsForPlayer2 = this.rs.getInt(6);
             if (!this.rs.wasNull() && state != 1) {
                 playPositionBtn.setEnabled(true);
-            } else //TODO : Start new game
-            {
+            } else {
                 playPositionBtn.setEnabled(false);
             }
         }
-        
-        if(Gomoku.playerTurn){
+
+        //Adjust hint button and text field according to the game state
+        if (Gomoku.playerTurn) {
             leftHintText.setText(Integer.toString(Gomoku.leftHintsForPlayer1));
-            if(Gomoku.leftHintsForPlayer1 == 0)
+            if (Gomoku.leftHintsForPlayer1 == 0) {
                 hintBtn.setEnabled(false);
-            else
-               hintBtn.setEnabled(true); 
-        }else{
+            } else {
+                hintBtn.setEnabled(true);
+            }
+        } else {
             leftHintText.setText(Integer.toString(Gomoku.leftHintsForPlayer2));
-            if(Gomoku.leftHintsForPlayer2 == 0)
-               hintBtn.setEnabled(false); 
-            else
-               hintBtn.setEnabled(true); 
+            if (Gomoku.leftHintsForPlayer2 == 0) {
+                hintBtn.setEnabled(false);
+            } else {
+                hintBtn.setEnabled(true);
+            }
         }
 
-        //----- Centrer la fenetre 
+        //----- Center window
         Dimension screenSize, frameSize;
         int x, y;
         screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -122,14 +111,11 @@ public class Home extends javax.swing.JFrame {
         y = (screenSize.height - frameSize.height) / 2;
         setLocation(x, y);
 
-        //------ mettre la fenetre non Resizable
         this.setResizable(false);
 
-        //------ Icon de frame
         Image icon = Toolkit.getDefaultToolkit().getImage(Home.class.getResource("/images/g1.png"));
         this.setIconImage(icon);
 
-        //------ Titre de frame
         this.setTitle("Gomoku");
 
     }
@@ -173,7 +159,6 @@ public class Home extends javax.swing.JFrame {
         contentPane.setMinimumSize(new java.awt.Dimension(700, 600));
         contentPane.setPreferredSize(new java.awt.Dimension(700, 600));
         contentPane.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-        
 
         boardPane.setBackground(new java.awt.Color(255, 102, 153));
         boardPane.setForeground(new java.awt.Color(255, 255, 255));
@@ -184,12 +169,12 @@ public class Home extends javax.swing.JFrame {
         javax.swing.GroupLayout boardPaneLayout = new javax.swing.GroupLayout(boardPane);
         boardPane.setLayout(boardPaneLayout);
         boardPaneLayout.setHorizontalGroup(
-            boardPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 570, Short.MAX_VALUE)
+                boardPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 570, Short.MAX_VALUE)
         );
         boardPaneLayout.setVerticalGroup(
-            boardPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 570, Short.MAX_VALUE)
+                boardPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 570, Short.MAX_VALUE)
         );
 
         contentPane.add(boardPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 90, 570, 570));
@@ -197,7 +182,7 @@ public class Home extends javax.swing.JFrame {
 
         depthCB.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
         depthCB.setForeground(new java.awt.Color(255, 51, 153));
-        depthCB.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Level 1", "Level 2", "Level 3" }));
+        depthCB.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"Level 1", "Level 2", "Level 3"}));
         contentPane.add(depthCB, new org.netbeans.lib.awtextra.AbsoluteConstraints(860, 40, 123, -1));
 
         playPositionBtn.setBackground(new java.awt.Color(255, 0, 102));
@@ -224,7 +209,7 @@ public class Home extends javax.swing.JFrame {
 
         hommeMachineCB.setFont(new java.awt.Font("Times New Roman", 1, 12)); // NOI18N
         hommeMachineCB.setForeground(new java.awt.Color(255, 102, 153));
-        hommeMachineCB.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "COMPUTER", "HUMAN" }));
+        hommeMachineCB.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"COMPUTER", "HUMAN"}));
         hommeMachineCB.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 hommeMachineCBActionPerformed(evt);
@@ -346,25 +331,25 @@ public class Home extends javax.swing.JFrame {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(contentPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1200, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(contentPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1200, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(contentPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 700, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(contentPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 700, Short.MAX_VALUE)
         );
 
         pack();
     }// </editor-fold>                        
 
-    //-------- Button :  Quitter --------
-    private void exitActionPerformed(java.awt.event.ActionEvent evt) {                                     
+    //------------ Exit Button ----------
+    private void exitActionPerformed(java.awt.event.ActionEvent evt) {
         setDefaultCloseOperation(Home.DISPOSE_ON_CLOSE);
         setVisible(false);
-    }                                    
+    }
 
-    //-------- Button : Se deconnecter ---------
-    private void deconnexionBtnActionPerformed(java.awt.event.ActionEvent evt) {                                               
+    //------------ Log out Button ----------
+    private void deconnexionBtnActionPerformed(java.awt.event.ActionEvent evt) {
         int a = JOptionPane.showConfirmDialog(null, "Log Out ?");
         if (a == JOptionPane.YES_OPTION) {
             this.idUser = 0;
@@ -379,14 +364,15 @@ public class Home extends javax.swing.JFrame {
                 Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    }                                              
+    }
 
-    //----------- Button : Enregistrer --------
-    private void saveBtnActionPerformed(java.awt.event.ActionEvent evt) {                                        
+    //------------ Save Game Button ----------
+    private void saveBtnActionPerformed(java.awt.event.ActionEvent evt) {
 
         GomokuPosition pos = (GomokuPosition) Gomoku.position;
         String br = "";
 
+        // getting the current board state
         int state = 0;
         for (int i = 0; i < 19; i++) {
             for (int j = 0; j < 19; j++) {
@@ -394,12 +380,14 @@ public class Home extends javax.swing.JFrame {
             }
         }
 
-        if(pos.state() || Gomoku.gameOver)
+        // getting the game state (if it's over or not)
+        if (pos.state() || Gomoku.gameOver) {
             state = 1;
-        else
+        } else {
             state = 0;
+        }
 
-        //------- Enregister la partie s'elle est nouvelle
+        //------------ create new game in the database if the game Id == 0 ----------
         if (idPartie == 0) {
             try {
                 String qry = "insert into game (board, state, left_black_stones, left_white_stones, left_black_hints, left_white_hints, id_user) values(?, ?, ?, ?, ?, ?, ?)";
@@ -413,11 +401,11 @@ public class Home extends javax.swing.JFrame {
                 ps.setInt(7, Home.idUser);
                 this.ps.execute();
 
-                JOptionPane.showMessageDialog(this, "Enregistré", "Bien enregistrée !", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Saved", "Game Saved !", JOptionPane.INFORMATION_MESSAGE);
             } catch (SQLException ex) {
                 Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } //------ Modifier la partie s'elle est ancienne
+        } //------------ Otherwise, update the game in the database ----------
         else {
             try {
                 String qry = "update game set board = ?, state = ?, left_black_stones = ?, left_white_stones = ?, left_black_hints = ?, left_white_hints = ? where id_game = ?";
@@ -431,50 +419,49 @@ public class Home extends javax.swing.JFrame {
                 this.ps.setInt(7, idPartie);
                 this.ps.execute();
 
-                JOptionPane.showMessageDialog(this, "Modifié", "Bien modifié !", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Updated", "Game Updated !", JOptionPane.INFORMATION_MESSAGE);
             } catch (SQLException ex) {
                 Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    }                                       
+    }
 
-    //----------- Button : Nouvelle partie --------
+    //----------- Hint Button --------
     private void hintBtnActionPerformed(java.awt.event.ActionEvent evt) {
         PlayGomoku.gomoku.giveHint();
         if (Gomoku.playerTurn && Gomoku.leftHintsForPlayer1 > 0) {
             Gomoku.leftHintsForPlayer1 -= 1;
             Home.leftHintText.setText(Integer.toString(Gomoku.leftHintsForPlayer1));
-           
-        } else if(!Gomoku.playerTurn && Gomoku.leftHintsForPlayer2 > 0) {
+
+        } else if (!Gomoku.playerTurn && Gomoku.leftHintsForPlayer2 > 0) {
             Gomoku.leftHintsForPlayer2 -= 1;
             Home.leftHintText.setText(Integer.toString(Gomoku.leftHintsForPlayer2));
-            
-        }else{
+
+        } else {
             JOptionPane.showMessageDialog(null, "Sorry, you can not ask for more hints.");
         }
-        
-    }                                       
 
-    private void leftHintTextActionPerformed(java.awt.event.ActionEvent evt) {                                             
+    }
+
+    private void leftHintTextActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
-    }                                            
+    }
 
-    private void resultTextActionPerformed(java.awt.event.ActionEvent evt) {                                           
+    private void resultTextActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
-    }                                          
+    }
 
-    private void leftBlackStonesTextActionPerformed(java.awt.event.ActionEvent evt) {                                                    
+    private void leftBlackStonesTextActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
-    }                                                   
+    }
 
-    private void hommeMachineCBActionPerformed(java.awt.event.ActionEvent evt) {                                               
+    private void hommeMachineCBActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
-    }                                              
+    }
 
-    //--------- Button : jouer une ancienne partie ----------
-    private void playPositionBtnActionPerformed(java.awt.event.ActionEvent evt) {                                                
+    //--------- Load Game Button ----------
+    private void playPositionBtnActionPerformed(java.awt.event.ActionEvent evt) {
 
-        //resultValueLbl1.setText("No result yet !");
         saveBtn.setEnabled(true);
 
         try {
@@ -483,6 +470,11 @@ public class Home extends javax.swing.JFrame {
             String br = "";
             int idGame = 0;
 
+            /**
+             * *********************************************************************
+             * Retrieving game id and game state elements from the database
+             * *******************************************************************
+             */
             String qry = "select id_game, board, state, left_black_stones, left_white_stones, left_black_hints, left_white_hints from game where id_user = ?";
             this.ps = this.connection.prepareStatement(qry);
             this.ps.setInt(1, this.idUser);
@@ -490,8 +482,6 @@ public class Home extends javax.swing.JFrame {
 
             int state;
             while (this.rs.next()) {
-                //this.positionUserCB.addItem(String.valueOf(this.rs.getInt(1))
-                //        + "  " + String.valueOf(this.rs.getInt(2) == 0 ? "Non" : "Oui"));
                 idGame = this.rs.getInt(1);
                 br = this.rs.getString(2);
                 state = this.rs.getInt(3);
@@ -499,16 +489,17 @@ public class Home extends javax.swing.JFrame {
                 Gomoku.leftStonesForPlayer2 = this.rs.getInt(5);
                 Gomoku.leftHintsForPlayer1 = this.rs.getInt(6);
                 Gomoku.leftHintsForPlayer2 = this.rs.getInt(7);
-                /*if (!this.rs.wasNull() && state != 1) {
-                    playPositionBtn.setEnabled(true);
-                } else //TODO : Start new game
-                {
-                    playPositionBtn.setEnabled(false);
-                }*/
             }
 
             idPartie = idGame;
 
+            /**
+             * ***************************************************************
+             * Converting the String describing the board, retrieved from
+             * the database, into an list of strings and storing it in a 
+             * array of integers size of 19x19  
+             * ***************************************************************
+            */
             String[] rows = new String[19];
 
             List<String> strings = new ArrayList<String>();
@@ -537,34 +528,39 @@ public class Home extends javax.swing.JFrame {
                 }
             }
 
+            // create a new GomokuPosition with the retrieved board and assign
+            // it to the game position static attribute
             GomokuPosition p = new GomokuPosition();
             p.setBoard(brd);
             Gomoku.position = p;
-            
+
+            // updating the game board and other game elements
             PlayGomoku.gomoku.board.setBoardFromGomokuPosition(p);
             boardPane.repaint();
-
+            
             Home.leftHintText.setText(Integer.toString(Gomoku.leftHintsForPlayer1));
 
             Home.leftBlackStonesText.setText(Integer.toString(Gomoku.leftStonesForPlayer1));
 
             Home.leftWhiteStonesText.setText(Integer.toString(Gomoku.leftStonesForPlayer2));
-
+            
+            // starting the game
             play();
 
         } catch (SQLException ex) {
             Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }                                               
+    }
 
-    private void playNewBtnActionPerformed(java.awt.event.ActionEvent evt) {                                           
+    //--------- New Game Button ----------
+    private void playNewBtnActionPerformed(java.awt.event.ActionEvent evt) {
         String br = "";
         for (int i = 0; i < 19; i++) {
             for (int j = 0; j < 19; j++) {
                 br = br + "0 ";
             }
         }
-        
+
         int idGame = 0;
         try {
             String query = "select id_game from game where id_user = ?";
@@ -598,10 +594,10 @@ public class Home extends javax.swing.JFrame {
                     Gomoku.depth = 2;
                     break;
                 case 1: // Moyen
-                    Gomoku.depth = 5;
+                    Gomoku.depth = 3;
                     break;
                 case 2: // Difficile
-                    Gomoku.depth = 8;
+                    Gomoku.depth = 5;
                     break;
             }
 
@@ -626,26 +622,26 @@ public class Home extends javax.swing.JFrame {
             this.ps.setInt(7, idGame);
             this.ps.execute();
             System.out.println("Index Depth " + Gomoku.depth);
-            
+            Gomoku.gameOver = false;
+            GomokuPosition p = new GomokuPosition();
+            Gomoku.position = p;
+            PlayGomoku.gomoku.board.setBoardFromGomokuPosition(p);
 
-            //PlayGomoku.gomoku.board.setBoardFromGomokuPosition(p);
-            
-            play();			
-            
+            play();
+
         } catch (SQLException ex) {
             Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }      
-    
-    private void play() {
-        new Thread(new PlayGomoku()).start();
-        
     }
 
-    private void leftWhiteStonesTextActionPerformed(java.awt.event.ActionEvent evt) {                                                    
-        // TODO add your handling code here:
-    }                                                   
+    private void play() {
+        new Thread(new PlayGomoku()).start();
 
+    }
+
+    private void leftWhiteStonesTextActionPerformed(java.awt.event.ActionEvent evt) {
+        // TODO add your handling code here:
+    }
 
     // Variables declaration - do not modify                     
     private javax.swing.JLabel BlackStonesLabel;

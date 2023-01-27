@@ -9,13 +9,12 @@ package tools;
  * @author MSI
  */
 public class GomokuPosition extends Position {
-    final static public int BLANK = 0;      //----- une case vide prend la valeur 0
-    final static public int HUMAN = 1;      //----- la valeur remplie par le joueur prend la valeur 1
-    final static public int PLAYER2 = -1;
-    final static public int PROGRAM = -1;   //----- la valeur remplie par l'adversaire prend la valeur -1
-    public int [][] board = new int[19][19];      //----- Le plateau de 361 cases (19x19)
+    final static public int BLANK = 0;      //----- an empty cell is coded by the integer 0
+    final static public int HUMAN = 1;      //----- a cell filled by the player (black) is coded by the integer 1
+    final static public int PROGRAM = -1;   //----- a cell filled by the enemy (white) is coded by the integer -1
+    public int [][] board = new int[19][19];      //----- The game's board of size 19x19
     
-    //---------- Constructeur --------------
+    //------------ Cosnstructor ----------
     public GomokuPosition() {
         
         for(int i = 0 ; i < 19; i ++)
@@ -33,8 +32,8 @@ public class GomokuPosition extends Position {
     }
     
     
-    //----- un boolean qui decrit l'etat d'une partie joué, 
-    //----- s'il est terminer etat =1, sinon etat = 0
+    /*----- This method returns true if the game is over,
+    otherwise, returns false */
     public boolean state() {
         for(int i = 0 ; i < 19; i ++)
             for(int j = 0; j < 19; j++)
@@ -52,6 +51,7 @@ public class GomokuPosition extends Position {
         sb.append("]");
         return sb.toString();
     }
+ 
 }
 
 

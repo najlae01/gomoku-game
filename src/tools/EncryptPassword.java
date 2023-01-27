@@ -19,8 +19,8 @@ public class EncryptPassword {
     
     
     /*------------------------------------------------------------------*
-    *   Cette classe est cree dans le but de crypter le password ajouté *
-    *   par le joueur lors de la creation de son compte sur le jeu      *
+    * This class is created in order to encrypt the password chosen
+    * by the user when creating his game account
     *-------------------------------------------------------------------*/
     
     private static final String UNICODE_FORMAT = "UTF8";

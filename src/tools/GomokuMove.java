@@ -10,7 +10,7 @@ package tools;
  */
 public class GomokuMove extends Move {
     
-    //----- L'indice de position choisi par le joueur
+    //----- The position index chosen by the player
     public int moveIndexX;
     public int moveIndexY;
 

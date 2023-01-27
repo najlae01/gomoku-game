@@ -15,7 +15,7 @@ import java.sql.SQLException;
 public class ConnectionManager {
     
 /******************************************************************************
- * La connection à la base de données en utilisant le design pattern Singleton*
+ * Connecting to the database using the Singleton design pattern *
  *****************************************************************************/
     
     private static Connection connection;
